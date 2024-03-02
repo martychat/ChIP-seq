@@ -1,0 +1,20 @@
+#!/usr/bin/bash
+
+in_file="$1" #reads in file with prefixes, one per line
+while read -r line; do
+  prefix="$line" 
+    echo "Aligning and filtering reads for: " $prefix #command to show you what's happening, add>
+  bowtie2 -t -k 2 -p 4 --local -x ../Helat_genome -1 $prefix"_R1.fastq.gz" \
+-2 $prefix"_R2.fastq.gz" -S ./$prefix".sam"
+  echo "Bowtie2 alignment complete." 
+        samtools view -bS ./$prefix".sam" > ./$prefix".aligned_reads.bam" #sam to bam
+  echo "Filtering alignments."
+  python ./mqFilter.py ./$prefix".sam" ./$prefix 3 20 #make sure path to mqFilter.py is correct
+  samtools view -bS ./$prefix".filtered.sam" > ./$prefix".filtered.bam" # sam to bam
+  rm ./$prefix".sam" #remove unnecessary files
+  rm ./$prefix".filtered.sam" 
+  rm ./$prefix".prefil.sam" 
+  samtools sort -o ./$prefix".filtered.sorted.bam" -@ 4 ./$prefix".filtered.bam" # change number>
+  echo "Removing duplicate alignments."
+  java -jar /programs/picard-tools-2.8.2/picard.jar MarkDuplicates I=./$prefix".filtered.sorted.>
+done < "$in_file" #go to next line, or if no more lines, done!
