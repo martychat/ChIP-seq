@@ -16,5 +16,6 @@ while read -r line; do
   rm ./$prefix".prefil.sam" 
   samtools sort -o ./$prefix".filtered.sorted.bam" -@ 4 ./$prefix".filtered.bam" # change number>
   echo "Removing duplicate alignments."
-  java -jar /programs/picard-tools-2.8.2/picard.jar MarkDuplicates I=./$prefix".filtered.sorted.>
+  java -jar /programs/picard-tools-2.8.2/picard.jar MarkDuplicates I=./$prefix".filtered.sorted.bam" O=./$prefix".filtered.sorted.nd.bam" Remove_Duplicates=true  M=./$prefix"_dup_metrics.txt"
+  samtools index $prefix".filtered.sorted.nd.bam"
 done < "$in_file" #go to next line, or if no more lines, done!
