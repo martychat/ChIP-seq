@@ -23,6 +23,10 @@ macs3 callpeak -t ../../../Msexta_bab_rep3.filtered.sorted.nd.bam -c ../../../Ms
 macs3 callpeak -t ../../../Msexta_bab_rep4.filtered.sorted.nd.bam -c ../../../Msexta_inp.filtered.sorted.nd.bam -g 4.68e8 -f BAMPE -q 0.01 -n Msexta_bab_rep4_q01 --outdir ./q_point01/ 2> Msexta_bab_rep4_q_point01.log &
 #Has 12789 peaks 
 
+
+#Used Frip_score script compute_frip.sh to calculate FRIP score and will go ahead with replicate 2 and 3 for IDR.
+
+
 export PYTHONPATH=/programs/idr-2.0.3/lib64/python3.9/site-packages
 export PATH=/programs/idr-2.0.3/bin:$PATH
 
@@ -35,4 +39,14 @@ idr --samples Msexta_bab_rep2_p0001_peaks.sorted_p.narrowPeak Msexta_bab_rep3_p0
 --plot \
 --log-output-file Msexta_bab_rep2_rep3.idr.log
 
-C
+#Make visualizable ChIPseq files by subtracting Treatment bam and input bam
+
+export PATH=/programs/deeptools-3.5.5/bin:$PATH
+
+export PYTHONPATH=/programs/deeptools-3.5.5/lib64/python3.9/site-packages:/programs/deeptools-3.5.5/lib/python3.9/site-packages
+
+#set tmp dir to /workdir/$USER/tmp
+mkdir -p /workdir/$USER/tmp
+
+export TMPDIR=/workdir/$USER/tmp
+
