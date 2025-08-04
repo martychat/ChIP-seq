@@ -1,0 +1,38 @@
+macs3 callpeak -t ../../Msexta_bab_rep1.filtered.sorted.nd.bam -c ../../Msexta_inp.filtered.sorted.nd.bam -f BAMPE -g 4.68e8 -p 1e-3 -n Msexta_bab_rep1_p001 --outdir ./p_point001/ 2> Msexta_bab_rep1_p_point001.log & 
+# similarly called peaks on all the 4 replicates. The number of paired aligned reads for replicate 1,2,3,4,input after filtering, sorting and removing duplicates are approximately 12,50,37,31,59 mil. So for peak calling I will use rep2 and rep3.
+#Rep 2 and Rep 3 has 12305 and 12200 peaks with relaxed p value of 0.001 with macs3 after plotting npeaks to pvalue.
+
+sort -k8,8nr Msexta_bab_rep2_p0001_peaks.narrowPeak > Msexta_bab_rep2_p0001_peaks.sorted_p.narrowPeak
+sort -k8,8nr Msexta_bab_rep3_p001_peaks.narrowPeak > Msexta_bab_rep3_p001_peaks.sorted.narrowPeak
+
+#I will also run Macs3 on my replicates with FDR or qvalues to see how many peaks there are and use them to compare with what I get with IDR. They are in the folder //workdir/Martik/ChIP/Msexta_babChIP/Oct24/peakcalls_without_downsizing
+
+export PYTHONPATH=/programs/macs3-3.0.2/lib/python3.9/site-packages:/programs/macs3-3.0.2/lib64/python3.9/site-packages
+
+export PATH=/programs/macs3-3.0.2/bin:$PATH
+
+macs3 callpeak -t ../../../Msexta_bab_rep1.filtered.sorted.nd.bam -c ../../../Msexta_inp.filtered.sorted.nd.bam -g 4.68e8 -f BAMPE -q 0.01 -n Msexta_bab_rep1_q01 --outdir ./q_point01/ 2> Msexta_bab_rep1_q_point01.log &
+#Has 9398 peaks
+
+macs3 callpeak -t ../../../Msexta_bab_rep2.filtered.sorted.nd.bam -c ../../../Msexta_inp.filtered.sorted.nd.bam -g 4.68e8 -f BAMPE -q 0.01 -n Msexta_bab_rep2_q01 --outdir ./q_point01/ 2> Msexta_bab_rep2_q_point01.log &
+#Has 13311 peaks
+
+macs3 callpeak -t ../../../Msexta_bab_rep3.filtered.sorted.nd.bam -c ../../../Msexta_inp.filtered.sorted.nd.bam -g 4.68e8 -f BAMPE -q 0.01 -n Msexta_bab_rep3_q01 --outdir ./q_point01/ 2> Msexta_bab_rep3_q_point01.log &
+#Has 10223 peaks
+
+macs3 callpeak -t ../../../Msexta_bab_rep4.filtered.sorted.nd.bam -c ../../../Msexta_inp.filtered.sorted.nd.bam -g 4.68e8 -f BAMPE -q 0.01 -n Msexta_bab_rep4_q01 --outdir ./q_point01/ 2> Msexta_bab_rep4_q_point01.log &
+#Has 12789 peaks 
+
+export PYTHONPATH=/programs/idr-2.0.3/lib64/python3.9/site-packages
+export PATH=/programs/idr-2.0.3/bin:$PATH
+
+
+
+idr --samples Msexta_bab_rep2_p0001_peaks.sorted_p.narrowPeak Msexta_bab_rep3_p001_peaks.sorted.narrowPeak \
+--input-file-type narrowPeak \
+--rank p.value \
+--output-file Msexta_bab_rep2_rep3_idr \
+--plot \
+--log-output-file Msexta_bab_rep2_rep3.idr.log
+
+C
