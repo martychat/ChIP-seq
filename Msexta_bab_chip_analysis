@@ -50,3 +50,33 @@ mkdir -p /workdir/$USER/tmp
 
 export TMPDIR=/workdir/$USER/tmp
 
+
+#If I subtract bam and bam
+
+nohup bamCompare \
+  -b1 Msexta_bab_rep2.filtered.sorted.nd.bam \
+  -b2 Msexta_inp.filtered.sorted.nd.bam \
+  --outFileName Msexta_bab_rep2.filtered.sorted.nd.subtract.RPKM.bw \
+  --operation subtract \
+  --normalizeUsing RPKM \
+  --scaleFactorsMethod None \
+  --smoothLength 60 \
+  --outFileFormat bigwig \
+  --extendReads \
+  --binSize 30 \
+  --centerReads
+
+#scaleFactorsMethod SES is recommended for ChIPseq data. Is not compatible if you use NormalizeUsing.
+nohup bamCompare \
+  -b1 Msexta_bab_rep2.filtered.sorted.nd.bam \
+  -b2 Msexta_inp.filtered.sorted.nd.bam \
+  --operation log2 \
+  --pseudocount 1 \
+  --effectiveGenomeSize 468000000 \
+  --scaleFactorsMethod SES \
+  --binSize 30 \
+  --extendReads \
+  --centerReads \
+  --smoothLength 60 \
+  --outFileFormat bigwig \
+  --outFileName Msexta_bab_rep2_CHIP_vs_inp.log2ratio.bw &
