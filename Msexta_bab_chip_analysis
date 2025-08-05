@@ -39,6 +39,24 @@ idr --samples Msexta_bab_rep2_p0001_peaks.sorted_p.narrowPeak Msexta_bab_rep3_p0
 --plot \
 --log-output-file Msexta_bab_rep2_rep3.idr.log
 
+#In order to make bed/narrowpeak files as output for IDR use   --output-file-type bed   --soft-idr-threshold
+
+#IDR reports everything that is common to two replicates. We will select only the ones that have IDR = 0.05 or lower. Or IDR score of 540 - 1000.
+
+awk '$5 >= 540' Msexta_bab_rep2_rep3_idr > Msexta_bab_rep2_rep3_idr_passed  
+
+#Alternatively this could be used to get bed file output of peaks consistent between replicates.
+
+idr --samples Msexta_bab_rep2_p0001_peaks.sorted_p.narrowPeak Msexta_bab_rep3_p001_peaks.sorted.narrowPeak \
+--input-file-type narrowPeak \
+--rank p.value \
+--output-file Msexta_bab_rep2_rep3_idr_threshold05.bed \
+--plot \
+--log-output-file Msexta_bab_rep2_rep3.idr.threshold.log \
+--idr-threshold \
+--output-file-type bed
+
+
 #Make visualizable ChIPseq files by subtracting Treatment bam and input bam
 
 export PATH=/programs/deeptools-3.5.5/bin:$PATH
