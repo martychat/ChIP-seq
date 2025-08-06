@@ -1,0 +1,55 @@
+#according to https://academic.oup.com/nargab/article/6/3/lqae090/7721749#476325780 making bacgrounds of genomic sequences for chipseq gives much more accurate and better outputs than using shifffled random backgrounds which skews things towards repeat rich regions.
+
+
+#Get sequences of IDR peaks
+bedtools getfasta -fi GCF_014839805.1_JHU_Msex_v1.0_genomic.fna -bed ../IDR_with_Rep2_Rep3/Msexta_bab_rep2_rep3_idr_threshold05.bed -fo Msexta_bab_rep2_rep3_idr_threshold05.fa
+
+#Now calculate the AT content and peak distribution lenght of the IDR peaks.
+export PATH=/programs/bioawk:$PATH
+bioawk -c fastx '{print $name, gc($seq), length($seq)}' Msexta_bab_rep2_rep3_idr_threshold05.fa | \
+awk '{print $1, (1-$2), $3}' > IDR_AT_content.txt
+
+#And weight the average AT content by sequence lengths which in this case is 0.665933 or 66.6 percent
+awk '{sum += $2 * $3; total_len += $3} END {print "Weighted Average AT Content:", sum/total_len}' IDR_AT_content.txt
+
+#Incase you want to check weather the unweighted average is drastically different or not, in this case, it is not.
+awk '{sum += $2; n++} END {print "Unweighted Average AT:", sum/n}' IDR_AT_content.txt
+
+
+
+#I will create a background with similar +_ 1 % AT content difference with sequences chosen from Replicate 1 and Replicate 4 which I did not use in this case. For each of the 2975 IDR peaks I will have 5 background sequences that fit the weighted AT criteria.
+#Convert Macs narrowpeak output to bed first.
+cut -f 1-6 Msexta_bab_rep1_p001_peaks.sorted.narrowPeak > Msexta_bab_rep1_p001_peaks.sorted.bed
+cut -f 1-6 Msexta_bab_rep4_p001_peaks.sorted.narrowPeak > Msexta_bab_rep4_p001.sorted.bed
+
+cat //workdir/Martik/ChIP/Msexta_babChIP/Oct24/peakcalls_without_downsizing/Replicate_1/p_point001/Msexta_bab_rep1_p001_peaks.sorted.bed //workdir/Martik/ChIP/Msexta_babChIP/Oct24/peakcalls_without_downsizing/Replicate_4/p_point001/Msexta_bab_rep4_p001.sorted.bed > Background1_4.bed
+bedtools sort -i Background1_4.bed > Background1_4.sorted.bed
+bedtools merge -d 10 -i Background1_4.sorted.bed > Background1_4.sorted.merged.bed
+
+bedtools getfasta -fi GCF_014839805.1_JHU_Msex_v1.0_genomic.fna -bed Background1_4.sorted.merged.bed -fo Msexta_background_merged.fa
+
+bioawk -c fastx '{at=gsub(/[ATat]/,"")/length($seq); if(at>=0.656 && at<=0.676) print ">"$name"\n"$seq}' Msexta_background_merged.fa > Msexta_background_ATfiltered.fa
+
+#alternate python script
+from Bio import SeqIO
+
+input_fasta = "Msexta_background_merged.fa"
+output_fasta = "Msexta_background_ATfiltered.fa"
+
+min_at, max_at = 0.656, 0.676
+count = 0
+
+with open(output_fasta, "w") as out:
+    for record in SeqIO.parse(input_fasta, "fasta"):
+        seq = str(record.seq).upper()
+        at_content = (seq.count("A") + seq.count("T")) / len(seq)
+        if min_at <= at_content <= max_at:
+            SeqIO.write(record, out, "fasta")
+            count += 1
+
+print(f"Sequences retained: {count}")
+
+
+
+
+//workdir/Martik/Msexta_RNAseq/ncbi_dataset/data/GCF_014839805.1
